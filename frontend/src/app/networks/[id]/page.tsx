@@ -485,13 +485,23 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
                   <div className="text-red-500 text-sm mb-2">{yamlError}</div>
                 )}
                 
-                <textarea
-                  value={yamlConfig}
-                  onChange={(e) => setYamlConfig(e.target.value)}
-                  placeholder="Docker Compose YAML configuration will appear here..."
-                  className="w-full h-64 px-4 py-2 text-sm font-mono bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  spellCheck={false}
-                />
+                <div className="relative overflow-hidden rounded-lg">
+                  <pre className="w-full h-72 overflow-auto">
+                    <textarea
+                      value={yamlConfig}
+                      onChange={(e) => setYamlConfig(e.target.value)}
+                      placeholder="Docker Compose YAML configuration will appear here..."
+                      className="w-full h-full px-4 py-2 text-sm font-mono bg-white border-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      spellCheck={false}
+                      wrap="off"
+                      style={{
+                        minWidth: '100%',
+                        WebkitOverflowScrolling: 'touch',
+                        resize: 'none'
+                      }}
+                    />
+                  </pre>
+                </div>
               </div>
             </div>
           </div>
