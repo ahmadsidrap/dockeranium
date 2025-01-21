@@ -55,6 +55,10 @@ interface DisconnectedContainer {
   }
 }
 
+interface NetworkReconstruction {
+  yaml: string
+}
+
 export default function NetworkDetailPage({ params }: { params: { id: string } }) {
   const networkId = params.id
   const [network, setNetwork] = useState<NetworkDetail | null>(null)
@@ -65,6 +69,10 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
   const [runLoading, setRunLoading] = useState<string | null>(null)
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
   const [selectedContainerRunning, setSelectedContainerRunning] = useState<boolean>(false)
+  const [yamlConfig, setYamlConfig] = useState<string>('')
+  const [loadingYaml, setLoadingYaml] = useState(false)
+  const [applyingYaml, setApplyingYaml] = useState(false)
+  const [yamlError, setYamlError] = useState<string | null>(null)
 
   const fetchData = async () => {
     try {
@@ -153,6 +161,52 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
       setError(err instanceof Error ? err.message : 'Failed to start container')
     } finally {
       setRunLoading(null)
+    }
+  }
+
+  const handleLoadYaml = async () => {
+    try {
+      setLoadingYaml(true)
+      setYamlError(null)
+      
+      const response = await fetch(`${API_URL}/api/networks/${networkId}/reconstruct/`)
+      if (!response.ok) throw new Error('Failed to reconstruct network configuration')
+      
+      const data: NetworkReconstruction = await response.json()
+      setYamlConfig(data.yaml)
+    } catch (err) {
+      setYamlError(err instanceof Error ? err.message : 'Failed to load network configuration')
+    } finally {
+      setLoadingYaml(false)
+    }
+  }
+
+  const handleApplyYaml = async () => {
+    if (!yamlConfig.trim()) {
+      setYamlError('Please load or enter a configuration first')
+      return
+    }
+
+    try {
+      setApplyingYaml(true)
+      setYamlError(null)
+      
+      const response = await fetch(`${API_URL}/api/networks/${networkId}/apply/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ yaml: yamlConfig }),
+      })
+      
+      if (!response.ok) throw new Error('Failed to apply network configuration')
+      
+      // Refresh network details after applying changes
+      await fetchData()
+    } catch (err) {
+      setYamlError(err instanceof Error ? err.message : 'Failed to apply network configuration')
+    } finally {
+      setApplyingYaml(false)
     }
   }
 
@@ -385,6 +439,61 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
                 </div>
               </div>
             )}
+
+            {/* Network Reconstruction Form */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Network Configuration</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                <div className="flex justify-end space-x-4 mb-2">
+                  <button
+                    onClick={handleLoadYaml}
+                    disabled={loadingYaml}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                  >
+                    {loadingYaml ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                      </>
+                    ) : (
+                      'Load Configuration'
+                    )}
+                  </button>
+                  <button
+                    onClick={handleApplyYaml}
+                    disabled={applyingYaml || !yamlConfig.trim()}
+                    className="px-4 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 flex items-center"
+                  >
+                    {applyingYaml ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Applying...
+                      </>
+                    ) : (
+                      'Apply Configuration'
+                    )}
+                  </button>
+                </div>
+                
+                {yamlError && (
+                  <div className="text-red-500 text-sm mb-2">{yamlError}</div>
+                )}
+                
+                <textarea
+                  value={yamlConfig}
+                  onChange={(e) => setYamlConfig(e.target.value)}
+                  placeholder="Docker Compose YAML configuration will appear here..."
+                  className="w-full h-64 px-4 py-2 text-sm font-mono bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  spellCheck={false}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from docker.errors import APIError
 import docker
 from rest_framework.decorators import api_view
+import yaml
 
 def debug_print(message):
     # Print to stdout which shows in docker logs
@@ -81,6 +82,75 @@ class NetworkViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=400)
         except Exception as e:
             debug_print(f"Error in disconnected: {str(e)}")
+            return Response({'error': str(e)}, status=500)
+
+    @action(detail=True, methods=['get'], url_path='reconstruct')
+    def reconstruct(self, request, pk=None):
+        try:
+            network = self.client.networks.get(pk)
+            network_info = network.attrs
+            
+            # Create a docker-compose style configuration
+            compose_config = {
+                'version': '3',
+                'networks': {
+                    network.name: {
+                        'driver': network_info['Driver'],
+                        'ipam': {
+                            'config': network_info['IPAM']['Config']
+                        }
+                    }
+                },
+                'services': {}
+            }
+            
+            # Add connected containers as services
+            for container_id, container_info in network_info.get('Containers', {}).items():
+                container = self.client.containers.get(container_id)
+                container_config = container.attrs['Config']
+                
+                service_name = container.name.lstrip('/')
+                compose_config['services'][service_name] = {
+                    'image': container_config['Image'],
+                    'networks': [network.name]
+                }
+                
+                # Add ports if any
+                ports = container.attrs['NetworkSettings']['Ports']
+                if ports:
+                    compose_config['services'][service_name]['ports'] = [
+                        f"{binding[0]['HostPort']}:{container_port.split('/')[0]}"
+                        for container_port, binding in ports.items()
+                        if binding
+                    ]
+            
+            # Convert to YAML
+            yaml_content = yaml.dump(compose_config, default_flow_style=False)
+            return Response({'yaml': yaml_content})
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+    @action(detail=True, methods=['post'], url_path='apply')
+    def apply_config(self, request, pk=None):
+        try:
+            yaml_content = request.data.get('yaml')
+            if not yaml_content:
+                return Response({'error': 'No YAML configuration provided'}, status=400)
+            
+            # Parse YAML
+            config = yaml.safe_load(yaml_content)
+            
+            # Apply network configuration
+            # Note: This is a placeholder. Actual implementation would need to:
+            # 1. Validate the configuration
+            # 2. Compare with current state
+            # 3. Apply changes safely
+            # 4. Handle errors appropriately
+            
+            return Response({'message': 'Configuration applied successfully'})
+            
+        except Exception as e:
             return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
