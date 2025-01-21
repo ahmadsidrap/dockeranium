@@ -313,7 +313,8 @@ class NetworkViewSet(ViewSet):
                     'ipv4Address': container_config.get('IPv4Address', ''),
                     'ipv6Address': container_config.get('IPv6Address', ''),
                     'macAddress': container_config.get('MacAddress', ''),
-                    'state': container.attrs['State']
+                    'state': container.attrs['State'],
+                    'ports': container.attrs['NetworkSettings']['Ports']
                 })
             
             network_detail = {
