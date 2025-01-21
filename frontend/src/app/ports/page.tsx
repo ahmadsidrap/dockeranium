@@ -66,8 +66,8 @@ export default function PortsPage() {
               <table className="min-w-full">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container Port</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Host Binding</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container Port</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Network</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container</th>
                   </tr>
@@ -77,7 +77,6 @@ export default function PortsPage() {
                     Object.entries(container.ports || {}).map(([port, mappings]) => (
                       mappings && mappings.length > 0 && (
                         <tr key={`${container.containerId}-${port}`} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm text-gray-900">{port}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">
                             {mappings.map((mapping, idx) => (
                               <span key={idx}>
@@ -86,6 +85,7 @@ export default function PortsPage() {
                               </span>
                             ))}
                           </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">{port}</td>
                           <td className="px-6 py-4 text-sm">
                             <Link 
                               href={`/networks/${container.networkId}`}

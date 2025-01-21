@@ -21,7 +21,9 @@ class NetworkViewSet(viewsets.ViewSet):
             return Response([{
                 'id': network.id,
                 'name': network.name,
-                # ... other fields
+                'driver': network.attrs['Driver'],
+                'scope': network.attrs['Scope'],
+                'containers': len(network.attrs.get('Containers', {}))
             } for network in networks])
         except Exception as e:
             return Response({'error': str(e)}, status=500)
