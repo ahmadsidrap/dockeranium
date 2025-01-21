@@ -68,44 +68,42 @@ export default function PortsPage() {
                   <tr className="bg-gray-100">
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container Port</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Host Binding</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container</th>
                     <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Network</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Container</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {ports.map((container) => (
                     Object.entries(container.ports || {}).map(([port, mappings]) => (
-                      <tr key={`${container.containerId}-${port}`} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900">{port}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {mappings && mappings.length > 0 ? (
-                            mappings.map((mapping, idx) => (
+                      mappings && mappings.length > 0 && (
+                        <tr key={`${container.containerId}-${port}`} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm text-gray-900">{port}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {mappings.map((mapping, idx) => (
                               <span key={idx}>
                                 {mapping.HostIp === '0.0.0.0' ? '*' : mapping.HostIp}:{mapping.HostPort}
                                 {idx < mappings.length - 1 ? ', ' : ''}
                               </span>
-                            ))
-                          ) : (
-                            <span className="text-gray-400">Not published</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <Link 
-                            href={`/containers/${container.containerId}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            {container.containerName}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <Link 
-                            href={`/networks/${container.networkId}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            {container.networkName}
-                          </Link>
-                        </td>
-                      </tr>
+                            ))}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <Link 
+                              href={`/networks/${container.networkId}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              {container.networkName}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <Link 
+                              href={`/containers/${container.containerId}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              {container.containerName}
+                            </Link>
+                          </td>
+                        </tr>
+                      )
                     ))
                   ))}
                 </tbody>
