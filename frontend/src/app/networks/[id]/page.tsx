@@ -9,6 +9,11 @@ import LogViewer from '@/components/LogViewer'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+interface PortMapping {
+  HostIp: string;
+  HostPort: string;
+}
+
 interface NetworkDetail {
   id: string
   name: string
@@ -27,6 +32,9 @@ interface NetworkDetail {
     ipv4Address: string
     ipv6Address: string
     macAddress: string
+    ports: {
+      [key: string]: PortMapping[] | null
+    }
     state: {
       Running: boolean
       Status: string
@@ -183,7 +191,7 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
                         <th className="text-left font-medium pb-2">Name</th>
                         <th className="text-left font-medium pb-2">IPv4 Address</th>
                         <th className="text-left font-medium pb-2">IPv6 Address</th>
-                        <th className="text-left font-medium pb-2">MAC Address</th>
+                        <th className="text-left font-medium pb-2">Ports</th>
                         <th className="text-left font-medium pb-2">Actions</th>
                       </tr>
                     </thead>
@@ -200,7 +208,26 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
                           </td>
                           <td className="py-2">{container.ipv4Address}</td>
                           <td className="py-2">{container.ipv6Address || '-'}</td>
-                          <td className="py-2">{container.macAddress}</td>
+                          <td className="py-2">
+                            <div className="space-y-1">
+                              {Object.entries(container.ports || {}).map(([port, mappings]) => (
+                                <div key={port} className="text-sm">
+                                  {port}
+                                  {mappings && mappings.length > 0 && (
+                                    <span className="text-gray-500">
+                                      {' → '}
+                                      {mappings.map((mapping, idx) => (
+                                        <span key={idx}>
+                                          {mapping.HostIp === '0.0.0.0' ? '*' : mapping.HostIp}:{mapping.HostPort}
+                                          {idx < mappings.length - 1 ? ', ' : ''}
+                                        </span>
+                                      ))}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
                           <td className="py-2 space-x-2">
                             {container.state.Running ? (
                               <>
@@ -262,7 +289,7 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
                         <th className="text-left font-medium pb-2">Name</th>
                         <th className="text-left font-medium pb-2">IPv4 Address</th>
                         <th className="text-left font-medium pb-2">IPv6 Address</th>
-                        <th className="text-left font-medium pb-2">MAC Address</th>
+                        <th className="text-left font-medium pb-2">Ports</th>
                         <th className="text-left font-medium pb-2">Actions</th>
                       </tr>
                     </thead>

@@ -26,8 +26,8 @@ The application will be available at:
 Build the frontend production image:
 
 ```bash
-docker build -t {registry}/dockeranium-web:{tag} -f frontend/Dockerfile.prod .
-docker build -t {registry}/dockeranium-api:{tag} -f backend/Dockerfile.prod .
+docker build -t dockeranium-web:{tag} -f frontend/Dockerfile.prod .
+docker build -t dockeranium-api:{tag} -f backend/Dockerfile.prod .
 ```
 
 #### 2. Tag Docker Images
