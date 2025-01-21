@@ -8,6 +8,7 @@ import Link from 'next/link'
 import LogViewer from '@/components/LogViewer'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const REFRESH_INTERVAL = 5000 // 5 seconds
 
 interface PortMapping {
   HostIp: string;
@@ -65,6 +66,32 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
   const [selectedContainerRunning, setSelectedContainerRunning] = useState<boolean>(false)
 
+  const fetchData = async () => {
+    try {
+      await Promise.all([
+        fetchNetworkDetail(),
+        fetchDisconnectedContainers()
+      ])
+    } catch (err) {
+      console.error('Error refreshing data:', err)
+    }
+  }
+
+  // Initial fetch
+  useEffect(() => {
+    fetchData()
+  }, [networkId])
+
+  // Set up periodic refresh
+  useEffect(() => {
+    const intervalId = setInterval(fetchData, REFRESH_INTERVAL)
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [networkId])
+
   const fetchNetworkDetail = async () => {
     try {
       const response = await fetch(`${API_URL}/api/networks/${networkId}/`)
@@ -88,11 +115,6 @@ export default function NetworkDetailPage({ params }: { params: { id: string } }
       console.error('Failed to fetch disconnected containers:', err)
     }
   }
-
-  useEffect(() => {
-    fetchNetworkDetail()
-    fetchDisconnectedContainers()
-  }, [networkId])
 
   const handleContainerAction = async (containerId: string, action: 'start' | 'stop') => {
     try {
