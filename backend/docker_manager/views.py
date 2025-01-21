@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from docker.errors import APIError
 import docker
+from rest_framework.decorators import api_view
 
 def debug_print(message):
     # Print to stdout which shows in docker logs
@@ -78,4 +79,37 @@ class NetworkViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=400)
         except Exception as e:
             debug_print(f"Error in disconnected: {str(e)}")
-            return Response({'error': str(e)}, status=500) 
+            return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def list_ports(request):
+    try:
+        client = docker.from_env()
+        containers = client.containers.list()
+        
+        ports_data = []
+        for container in containers:
+            container_info = container.attrs
+            
+            # Get networks information
+            networks = container_info.get('NetworkSettings', {}).get('Networks', {})
+            for network_name, network_info in networks.items():
+                network_id = network_info.get('NetworkID', '')
+                
+                # Get port mappings
+                ports = container_info.get('NetworkSettings', {}).get('Ports', {})
+                
+                if ports:  # Only add if container has ports
+                    ports_data.append({
+                        'containerId': container.id,
+                        'containerName': container.name.lstrip('/'),
+                        'networkId': network_id,
+                        'networkName': network_name,
+                        'ports': ports
+                    })
+        
+        debug_print(f"Ports data: {ports_data}")  # Add debug logging
+        return Response(ports_data)
+    except Exception as e:
+        debug_print(f"Error in list_ports: {str(e)}")  # Add debug logging
+        return Response({'error': str(e)}, status=500) 

@@ -21,4 +21,5 @@ urlpatterns = [
     path('volumes', VolumeListView.as_view(), name='volume-list'),
     path('volumes/<str:volume_id>/', VolumeListView.as_view(), name='volume-detail'),
     path('system/stats', SystemStatsView.as_view(), name='system-stats'),
+    path('', include('docker_manager.urls')),
 ] 

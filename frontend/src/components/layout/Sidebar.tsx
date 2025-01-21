@@ -24,6 +24,7 @@ const menuItems: MenuItem[] = [
   { name: 'Containers', href: '/containers', icon: FaDocker },
   { name: 'Images', href: '/images', icon: FaImage },
   { name: 'Networks', href: '/networks', icon: FaNetworkWired },
+  { name: 'Ports', href: '/ports', icon: FaNetworkWired },
   { name: 'Volumes', href: '/volumes', icon: FaHdd },
   { name: 'Reverse Proxy', href: '/proxy', icon: FaRandom }
 ]
