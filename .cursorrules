@@ -1,0 +1,72 @@
+Memorize these rules:
+- When I want to make a major change, I will increment the major version.
+- When I want to make a minor change, I will increment the minor version.
+- You only increment the patch version when I insert Commit ID at the end of the change log.
+- We use number after patch version to indicate the expected revision is not yet reached. You increment that number until the patch version is changed.
+- Only me can add Commit ID to the change log.
+
+Project structure:
++ Frontend (Next.js + TypeScript):
++ /frontend/src/app/
++   ├── components/       # Reusable React components
++   ├── node_modules/     # Project dependencies installed via npm/yarn
++   ├── public/           # Static assets like images, fonts, etc.
++   └── src/              # Main source code directory
+        ├── app/          # Next.js app router and page components
+        │   ├── api/        # API endpoints and views
+        │   ├── containers/      # TypeScript type definitions
+        │   ├── images/      # TypeScript type definitions
+        │   ├── login/      # TypeScript type definitions
+        │   ├── networks/      # TypeScript type definitions
+        │   ├── proxy/      # TypeScript type definitions
+        │   └── volumes/      # TypeScript type definitions
+        ├── components/   # App-specific React components
+        ├── lib/          # Utility functions and shared logic
+        ├── pages/        # Next.js page components (if using pages router)
+        ├── types/        # TypeScript type definitions
+        └── middleware.ts # Next.js middleware for request/response handling
++ 
++ Backend (Django + DRF):
++ /backend/
++   ├── api/                 # Main API application directory
++   │   ├── views.py         # API endpoint views and logic
++   │   └── urls.py          # API URL routing configuration
++   ├── docker_manager/      # Docker management application
++   │    ├── views.py        # Docker-specific views and operations
++   │    └── urls.py         # Docker-related URL routing
++   └── dockeranium/         # Main Django project directory
++       ├── asgi.py          # ASGI configuration for async servers
++       ├── settings.py      # Django project settings and configuration
++       ├── urls.py          # Main URL routing configuration
++       └── wsgi.py          # WSGI configuration for web servers
+
++ Dependencies and Configuration:
++ Frontend:
++   ├── TypeScript:
++   │   ├── @types/next       # Next.js type definitions
++   │   ├── @types/react      # React type definitions
++   │   └── tsconfig.json     # TypeScript configuration
++   └── Next.js:
++       ├── next/server       # Server-side utilities
++       └── next/navigation   # Client-side navigation
++ 
++ API Structure:
++ Frontend:
++   /frontend/src/app/api/
++     └── auth/             # Authentication endpoints
++         └── logout/       # Logout handling
++ 
++ Backend:
++   API Endpoints:
++     ├── /api/container/   # Container operations
++     ├── /api/network/     # Network operations
++     ├── /api/image/       # Image operations
++     ├── /api/volume/      # Volume operations
++     └── /api/system/      # System statistics
++ 
++ Type Definitions:
++ /frontend/src/types/
++   ├── container.ts       # Container interface and type definitions
++   ├── iron-session.d.ts  # Session handling type declarations
++   ├── next.d.ts          # Next.js framework type extensions
++   └── params.ts          # Route and query parameter type definitions

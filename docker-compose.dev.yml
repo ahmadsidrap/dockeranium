@@ -1,0 +1,30 @@
+services:
+  frontend:
+    hostname: dockeranium-web
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    env_file:
+      - .env
+    command: npm run dev
+    depends_on:
+      - backend
+
+  backend:
+    hostname: dockeranium-api
+    build: ./backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+
+networks:
+  default:
+    name: dockeranium-network 

@@ -1,0 +1,29 @@
+services:
+  frontend:
+    hostname: dockeranium-web
+    image: registry.introvesia.com/introvesia-public/dockeranium-web:0.0.2
+    ports:
+      - "${FRONTEND_PORT:-3003}:${FRONTEND_INTERNAL_PORT:-3000}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${FRONTEND_INTERNAL_PORT:-3000}
+    env_file:
+      - .env.prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    hostname: dockeranium-api
+    image: registry.introvesia.com/introvesia-public/dockeranium-api:0.0.2
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env.prod
+    restart: unless-stopped
+
+networks:
+  default:
+    name: dockeranium-network-prod 
