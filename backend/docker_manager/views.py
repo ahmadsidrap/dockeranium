@@ -90,18 +90,19 @@ class NetworkViewSet(viewsets.ViewSet):
             network = self.client.networks.get(pk)
             network_info = network.attrs
             
-            # Create a docker-compose style configuration
+            # Create a docker-compose style configuration with ordered sections
             compose_config = {
                 'version': '3',
+                'services': {},
                 'networks': {
                     network.name: {
                         'driver': network_info['Driver'],
                         'ipam': {
+                            'driver': network_info['IPAM']['Driver'],
                             'config': network_info['IPAM']['Config']
                         }
                     }
-                },
-                'services': {}
+                }
             }
             
             # Add connected containers as services
@@ -110,22 +111,57 @@ class NetworkViewSet(viewsets.ViewSet):
                 container_config = container.attrs['Config']
                 
                 service_name = container.name.lstrip('/')
-                compose_config['services'][service_name] = {
+                service_config = {
                     'image': container_config['Image'],
+                    'container_name': container.name.lstrip('/'),
                     'networks': [network.name]
                 }
-                
+
+                # Add environment variables if any
+                if container_config.get('Env'):
+                    env_list = []
+                    for env in container_config['Env']:
+                        if '=' in env:  # Only add valid env vars
+                            env_list.append(env)
+                    if env_list:
+                        service_config['environment'] = env_list
+
                 # Add ports if any
                 ports = container.attrs['NetworkSettings']['Ports']
                 if ports:
-                    compose_config['services'][service_name]['ports'] = [
-                        f"{binding[0]['HostPort']}:{container_port.split('/')[0]}"
-                        for container_port, binding in ports.items()
-                        if binding
-                    ]
+                    port_list = []
+                    for container_port, binding in ports.items():
+                        if binding:
+                            port = container_port.split('/')[0]
+                            for bind in binding:
+                                port_list.append(f"{bind['HostPort']}:{port}")
+                    if port_list:
+                        service_config['ports'] = port_list
+
+                # Add volumes if any
+                if container_config.get('Volumes'):
+                    volumes = []
+                    for container_path in container_config['Volumes'].keys():
+                        volumes.append(f"{container_path}")
+                    if volumes:
+                        service_config['volumes'] = volumes
+
+                compose_config['services'][service_name] = service_config
             
-            # Convert to YAML
-            yaml_content = yaml.dump(compose_config, default_flow_style=False)
+            # Convert to YAML with proper formatting
+            yaml.add_representer(
+                dict,
+                lambda dumper, data: dumper.represent_dict(data.items()),
+                Dumper=yaml.SafeDumper
+            )
+            
+            yaml_content = yaml.dump(
+                compose_config,
+                default_flow_style=False,
+                sort_keys=False,
+                Dumper=yaml.SafeDumper
+            )
+            
             return Response({'yaml': yaml_content})
             
         except Exception as e:
