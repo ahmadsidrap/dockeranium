@@ -8,19 +8,17 @@ RUN apt-get update && \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first to leverage Docker cache
+# Copy requirements file
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire backend directory
-COPY . /app/
+# Copy the rest of the application code
+COPY . .
 
-# Set proper permissions
-RUN chmod +x /app/manage.py
-
-# Expose port
+# Expose the port the app runs on
 EXPOSE 8000
 
-# Run migrations and start server
-CMD python manage.py migrate && \
-    python manage.py runserver 0.0.0.0:8000 
+# Start the FastAPI application with uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"] 
