@@ -10,6 +10,8 @@ services:
       - /app/.next
     env_file:
       - .env
+    environment:
+      NODE_ENV: development
     command: npm run dev
     depends_on:
       - backend
@@ -27,4 +29,4 @@ services:
 
 networks:
   default:
-    name: dockeranium-network 
+    name: dockeranium-network
