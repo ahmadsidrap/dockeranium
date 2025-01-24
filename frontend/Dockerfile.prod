@@ -7,7 +7,7 @@ WORKDIR /app
 COPY frontend/package.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy source code and config files
 COPY frontend/ .
@@ -41,4 +41,4 @@ USER nextjs
 
 EXPOSE ${PORT}
 
-CMD ["npm", "start"] 
+CMD ["npm", "run", "start"] 
