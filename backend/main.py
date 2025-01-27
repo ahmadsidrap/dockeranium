@@ -330,6 +330,60 @@ async def get_container_logs(container_id: str):
         debug_print(f"Error getting logs for container {container_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/containers/{container_id}/stop")
+async def stop_container(container_id: str):
+    try:
+        debug_print(f"Attempting to stop container with ID: {container_id}")
+        container = docker_client.containers.get(container_id)
+        
+        if not container.attrs['State']['Running']:
+            raise HTTPException(
+                status_code=400,
+                detail="Container is not running"
+            )
+            
+        container.stop()
+        return {"message": f"Container {container.name} stopped successfully"}
+        
+    except docker.errors.NotFound:
+        debug_print(f"Container not found: {container_id}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Container not found: {container_id}"
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        debug_print(f"Error stopping container {container_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/containers/{container_id}/start")
+async def start_container(container_id: str):
+    try:
+        debug_print(f"Attempting to start container with ID: {container_id}")
+        container = docker_client.containers.get(container_id)
+        
+        if container.attrs['State']['Running']:
+            raise HTTPException(
+                status_code=400,
+                detail="Container is already running"
+            )
+            
+        container.start()
+        return {"message": f"Container {container.name} started successfully"}
+        
+    except docker.errors.NotFound:
+        debug_print(f"Container not found: {container_id}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Container not found: {container_id}"
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        debug_print(f"Error starting container {container_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Image Routes
 @app.get("/api/images")
 async def list_images():

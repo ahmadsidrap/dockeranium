@@ -21,7 +21,13 @@ The application will be available at:
 - Access to Harbor registry
 - Harbor credentials configured
 
-#### 1. Build Docker Images
+#### 1. Run Docker Images
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+#### 2. Build Docker Images
 
 Build the frontend production image:
 
